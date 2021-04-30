@@ -17,6 +17,20 @@ contract OrgV1Test is DSTest {
         org.unanchor(bytes32(0));
     }
 
+    function testAnchoring() public {
+        org.anchor(bytes32(hex"42"), bytes32(hex"99"), uint8(0), uint8(0));
+        {
+            (bytes32 hash,,) = org.anchors(bytes32(hex"42"));
+            assertEq(hash, bytes32(hex"99"));
+        }
+
+        org.unanchor(bytes32(hex"42"));
+        {
+            (bytes32 hash,,) = org.anchors(bytes32(hex"42"));
+            assertEq(hash, bytes32(0));
+        }
+    }
+
     function testRecoverFunds() public {
         Token token = new Token("RAD", 100);
 

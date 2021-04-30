@@ -7,8 +7,21 @@ interface IERC20 {
 
 /// A Radicle Org.
 contract OrgV1 {
+    /// Project anchor.
+    struct Anchor {
+        // The hash being anchored.
+        bytes32 hash;
+        // The kind of object being anchored.
+        uint8 kind;
+        // The format of the hash.
+        uint8 format;
+    }
+
     /// Org owner.
     address public owner;
+
+    /// Latest anchor for each object.
+    mapping (bytes32 => Anchor) public anchors;
 
     // -- EVENTS --
 
@@ -55,11 +68,13 @@ contract OrgV1 {
         uint8 kind,
         uint8 format
     ) public ownerOnly {
+        anchors[id] = Anchor(hash, kind, format);
         emit Anchored(id, hash, kind, format);
     }
 
     /// Unanchor an object from the org.
     function unanchor(bytes32 id) public ownerOnly {
+        delete anchors[id];
         emit Unanchored(id);
     }
 
