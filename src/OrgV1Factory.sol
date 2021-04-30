@@ -28,8 +28,8 @@ contract OrgV1Factory {
     SafeFactory immutable safeFactory;
     address immutable safeMasterCopy;
 
-    /// An org was created. Includes the org address.
-    event OrgCreated(address org);
+    /// An org was created. Includes the org and safe address.
+    event OrgCreated(address org, address safe);
 
     constructor(
         address _safeFactory,
@@ -50,6 +50,6 @@ contract OrgV1Factory {
 
         // Deploy org
         org = new OrgV1(address(safe));
-        emit OrgCreated(address(org));
+        emit OrgCreated(address(org), address(safe));
     }
 }
