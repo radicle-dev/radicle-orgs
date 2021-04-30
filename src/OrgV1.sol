@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity ^0.8.0;
 
+interface IERC20 {
+    function transfer(address recipient, uint256 amount) external returns (bool);
+}
+
 /// A Radicle Org.
 contract OrgV1 {
     /// Org owner.
@@ -57,5 +61,10 @@ contract OrgV1 {
     /// Unanchor an object from the org.
     function unanchor(bytes32 id) public ownerOnly {
         emit Unanchored(id);
+    }
+
+    /// Transfer funds from this contract to the owner contract.
+    function recoverFunds(IERC20 token, uint256 amount) public ownerOnly returns (bool) {
+        return token.transfer(msg.sender, amount);
     }
 }
