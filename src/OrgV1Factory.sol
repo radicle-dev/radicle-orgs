@@ -40,6 +40,8 @@ contract OrgV1Factory {
     }
 
     function createOrg(address[] memory owners, uint256 threshold) public returns (OrgV1 org) {
+        require(owners.length > 0, "OrgFactory: owners must not be empty");
+        require(threshold > 0, "OrgFactory: threshold must be greater than zero");
         require(threshold <= owners.length, "OrgFactory: threshold must be lesser than or equal to owner count");
 
         // Deploy safe.
