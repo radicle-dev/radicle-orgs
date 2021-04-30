@@ -1,0 +1,9 @@
+#!/bin/sh
+export ETH_GAS=1500000
+export GAS_PRICE=1gwei
+
+safeFactory=0x76E2cFc1F5Fa8F6a5b3fC4c8F4788F0116861F9B
+safeMasterCopy=0x34CfAC646f301356fAa8B21e94227e3583Fe3F5F
+
+dapp --use solc:0.8.0 create OrgV1Factory "$safeFactory" "$safeMasterCopy"
+
