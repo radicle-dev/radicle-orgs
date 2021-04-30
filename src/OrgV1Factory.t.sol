@@ -17,7 +17,10 @@ contract OrgV1FactoryTest is DSTest {
     }
 
     function testSanity() public {
-        OrgV1 org = factory.createOrg(address(this));
+        address[] memory owners = new address[](1);
+        owners[0] = address(this);
+
+        OrgV1 org = factory.createOrg(owners, 1);
         assertTrue(address(org) != address(0));
 
         Safe safe = Safe(org.owner());

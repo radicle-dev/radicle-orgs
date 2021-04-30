@@ -39,14 +39,12 @@ contract OrgV1Factory {
         safeMasterCopy = _safeMasterCopy;
     }
 
-    function createOrg(address owner) public returns (OrgV1 org) {
+    function createOrg(address[] memory owners, uint256 threshold) public returns (OrgV1 org) {
+        require(threshold <= owners.length, "OrgFactory: threshold must be lesser than or equal to owner count");
+
         // Deploy safe.
         Safe safe = safeFactory.createProxy(safeMasterCopy, new bytes(0));
-
-        address[] memory owners = new address[](1);
-        owners[0] = owner;
-
-        safe.setup(owners, 1, address(0), new bytes(0), address(0), address(0), 0, payable(address(0)));
+        safe.setup(owners, threshold, address(0), new bytes(0), address(0), address(0), 0, payable(address(0)));
 
         // Deploy org
         org = new OrgV1(address(safe));
