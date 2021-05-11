@@ -6,4 +6,4 @@
 
 ### Ropsten
 
-`OrgV1Factory` is deployed at `0xF3D04e874D07d680e8b26332eEae5b9B1c263121`
+`OrgV1Factory` is deployed at `0x2007bcEf1247CD03Bb4262eF420D6487368f473B`
