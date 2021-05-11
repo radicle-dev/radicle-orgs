@@ -5,6 +5,10 @@ import "ds-test/test.sol";
 
 import "./OrgV1.sol";
 
+interface Resolver {
+    function name(bytes32 node) external view returns (string memory);
+}
+
 contract OrgV1Test is DSTest {
     OrgV1 org;
 
@@ -41,6 +45,29 @@ contract OrgV1Test is DSTest {
         assertEq(token.balanceOf(address(this)), 50);
         assertTrue(org.recoverFunds(IERC20(address(token)), 50));
         assertEq(token.balanceOf(address(this)), 100);
+    }
+
+    function testSetName() public {
+        ENS ens = ENS(0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e);
+        {
+            bytes32 node = org.setName("first.radicle.eth", ens);
+
+            address reverseRegistrar = ens.owner(org.ADDR_REVERSE_NODE());
+            assertEq(ens.owner(node), reverseRegistrar);
+
+            Resolver resolver = Resolver(ens.resolver(node));
+            string memory name = resolver.name(node);
+
+            assertEq(name, "first.radicle.eth");
+        }
+
+        { // Check that we can set the name more than once.
+            bytes32 node = org.setName("second.radicle.eth", ens);
+            Resolver resolver = Resolver(ens.resolver(node));
+            string memory name = resolver.name(node);
+
+            assertEq(name, "second.radicle.eth");
+        }
     }
 }
 

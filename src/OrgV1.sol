@@ -5,6 +5,15 @@ interface IERC20 {
     function transfer(address recipient, uint256 amount) external returns (bool);
 }
 
+interface ENS {
+    function owner(bytes32 node) external view returns (address);
+    function resolver(bytes32 node) external view returns (address);
+}
+
+interface ReverseRegistrar {
+    function setName(string memory name) external returns (bytes32);
+}
+
 /// A Radicle Org.
 contract OrgV1 {
     /// Project anchor.
@@ -16,6 +25,10 @@ contract OrgV1 {
         // The format of the hash.
         uint8 format;
     }
+
+    /// Output of namehash("addr.reverse").
+    bytes32 public constant ADDR_REVERSE_NODE =
+        0x91d1777781884d03a6757a803996e38de2a42967fb37eeaca72729271025a9e2;
 
     /// Org owner.
     address public owner;
@@ -33,6 +46,9 @@ contract OrgV1 {
 
     /// The org owner changed.
     event OwnerChanged(address newOwner);
+
+    /// The org name changed.
+    event NameChanged(string name);
 
     /// Construct a new org instance, by providing an owner address.
     constructor(address _owner) {
@@ -81,5 +97,15 @@ contract OrgV1 {
     /// Transfer funds from this contract to the owner contract.
     function recoverFunds(IERC20 token, uint256 amount) public ownerOnly returns (bool) {
         return token.transfer(msg.sender, amount);
+    }
+
+    /// Configures the caller's reverse ENS record to point to the provided name.
+    /// The address of the ENS registry is passed as the second parameter.
+    function setName(string memory name, ENS ens) public ownerOnly returns (bytes32) {
+        ReverseRegistrar registrar = ReverseRegistrar(ens.owner(ADDR_REVERSE_NODE));
+        bytes32 node = registrar.setName(name);
+        emit NameChanged(name);
+
+        return node;
     }
 }
