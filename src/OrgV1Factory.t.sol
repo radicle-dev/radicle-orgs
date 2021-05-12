@@ -28,4 +28,11 @@ contract OrgV1FactoryTest is DSTest {
         assertEq(safe.getThreshold(), 1, "Threshold should be 1");
         assertTrue(safe.isOwner(address(this)), "We must be an owner");
     }
+
+    function testCreate() public {
+        OrgV1 org = factory.createOrg(address(this));
+        assertEq(org.owner(), address(this));
+        org.setOwner(address(0));
+        assertEq(org.owner(), address(0));
+    }
 }

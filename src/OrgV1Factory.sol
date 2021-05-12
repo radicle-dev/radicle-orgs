@@ -39,6 +39,14 @@ contract OrgV1Factory {
         safeMasterCopy = _safeMasterCopy;
     }
 
+    /// Create an org with a specified owner.
+    function createOrg(address owner) public returns (OrgV1 org) {
+        org = new OrgV1(address(owner));
+        emit OrgCreated(address(org), address(owner));
+    }
+
+    /// Create an org with multiple owners, via a multi-sig contract. The threshold specifies
+    /// how many signatures are required to transact.
     function createOrg(address[] memory owners, uint256 threshold) public returns (OrgV1 org) {
         require(owners.length > 0, "OrgFactory: owners must not be empty");
         require(threshold > 0, "OrgFactory: threshold must be greater than zero");
