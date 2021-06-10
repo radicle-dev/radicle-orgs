@@ -4,6 +4,11 @@
 
 ## Deployments
 
+### Mainnet
+
+`OrgV1Factory` is deployed at `0x7c4D590168A9019995e072f9c1eCfc1fc356bEd4` at
+height `12607495`.
+
 ### Ropsten
 
 `OrgV1Factory` is deployed at `0xc074cDd9541960B0AA72D90c8bC642F6ae9C4032` at
