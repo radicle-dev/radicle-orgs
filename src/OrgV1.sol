@@ -18,12 +18,10 @@ interface ReverseRegistrar {
 contract OrgV1 {
     /// Project anchor.
     struct Anchor {
-        // The hash being anchored.
-        bytes32 hash;
+        // The hash being anchored in multihash format.
+        bytes multihash;
         // The kind of object being anchored.
         uint8 kind;
-        // The format of the hash.
-        uint8 format;
     }
 
     /// Output of namehash("addr.reverse").
@@ -39,7 +37,7 @@ contract OrgV1 {
     // -- EVENTS --
 
     /// An object was anchored.
-    event Anchored(bytes32 id, bytes32 hash, uint8 kind, uint8 format);
+    event Anchored(bytes32 id, bytes multihash, uint8 kind);
 
     /// An object was unanchored.
     event Unanchored(bytes32 id);
@@ -69,23 +67,19 @@ contract OrgV1 {
         emit OwnerChanged(newOwner);
     }
 
-    /// Anchor an object to the org, by providing its hash. This method
-    /// should be used for adding new objects to the org, as well as updating
-    /// existing ones.
+    /// Anchor an object to the org, by providing its hash in *multihash* format.
+    /// This method should be used for adding new objects to the org, as well as
+    /// updating existing ones.
     ///
     /// The `kind` paramter may be used to specify the kind of object being
     /// anchored. Defaults to `0`.
-    ///
-    /// The `format` paramter may be used to specify the format of the anchor
-    /// data, eg. what kind of hash is used. Defaults to `0`.
     function anchor(
         bytes32 id,
-        bytes32 hash,
-        uint8 kind,
-        uint8 format
+        bytes calldata multihash,
+        uint8 kind
     ) public ownerOnly {
-        anchors[id] = Anchor(hash, kind, format);
-        emit Anchored(id, hash, kind, format);
+        anchors[id] = Anchor(multihash, kind);
+        emit Anchored(id, multihash, kind);
     }
 
     /// Unanchor an object from the org.

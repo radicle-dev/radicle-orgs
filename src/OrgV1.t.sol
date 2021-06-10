@@ -17,21 +17,21 @@ contract OrgV1Test is DSTest {
     }
 
     function testSanity() public {
-        org.anchor(bytes32(0), bytes32(0), uint8(0), uint8(0));
+        org.anchor(bytes32(0), new bytes(0), uint8(0));
         org.unanchor(bytes32(0));
     }
 
     function testAnchoring() public {
-        org.anchor(bytes32(hex"42"), bytes32(hex"99"), uint8(0), uint8(0));
+        org.anchor(bytes32(hex"42"), new bytes(99), uint8(0));
         {
-            (bytes32 hash,,) = org.anchors(bytes32(hex"42"));
-            assertEq(hash, bytes32(hex"99"));
+            (bytes memory hash,) = org.anchors(bytes32(hex"42"));
+            assertBytesEq(hash, new bytes(99));
         }
 
         org.unanchor(bytes32(hex"42"));
         {
-            (bytes32 hash,,) = org.anchors(bytes32(hex"42"));
-            assertEq(hash, bytes32(0));
+            (bytes memory hash,) = org.anchors(bytes32(hex"42"));
+            assertBytesEq(hash, new bytes(0));
         }
     }
 
@@ -87,5 +87,11 @@ contract Token is IERC20 {
         balanceOf[addr] += amount;
 
         return true;
+    }
+}
+
+function assertBytesEq(bytes memory a, bytes memory b) pure {
+    if (keccak256(abi.encodePacked(a)) != keccak256(abi.encodePacked(b))) {
+        revert("Assertion failed");
     }
 }
