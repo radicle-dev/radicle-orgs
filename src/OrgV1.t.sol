@@ -17,20 +17,20 @@ contract OrgV1Test is DSTest {
     }
 
     function testSanity() public {
-        org.anchor(bytes32(0), new bytes(0), uint8(0));
+        org.anchor(bytes32(0), uint32(0), new bytes(0));
         org.unanchor(bytes32(0));
     }
 
     function testAnchoring() public {
-        org.anchor(bytes32(hex"42"), new bytes(99), uint8(0));
+        org.anchor(bytes32(hex"42"), uint32(0), new bytes(99));
         {
-            (bytes memory hash,) = org.anchors(bytes32(hex"42"));
+            (,bytes memory hash) = org.anchors(bytes32(hex"42"));
             assertBytesEq(hash, new bytes(99));
         }
 
         org.unanchor(bytes32(hex"42"));
         {
-            (bytes memory hash,) = org.anchors(bytes32(hex"42"));
+            (,bytes memory hash) = org.anchors(bytes32(hex"42"));
             assertBytesEq(hash, new bytes(0));
         }
     }

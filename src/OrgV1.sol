@@ -16,12 +16,12 @@ interface ReverseRegistrar {
 
 /// A Radicle Org.
 contract OrgV1 {
-    /// Project anchor.
+    /// Object anchor.
     struct Anchor {
+        // A tag that can be used to discriminate between anchor types.
+        uint32 tag;
         // The hash being anchored in multihash format.
         bytes multihash;
-        // A tag that can be used to discriminate between anchor types.
-        uint8 tag;
     }
 
     /// Output of namehash("addr.reverse").
@@ -37,7 +37,7 @@ contract OrgV1 {
     // -- EVENTS --
 
     /// An object was anchored.
-    event Anchored(bytes32 id, bytes multihash, uint8 tag);
+    event Anchored(bytes32 id, uint32 tag, bytes multihash);
 
     /// An object was unanchored.
     event Unanchored(bytes32 id);
@@ -71,15 +71,17 @@ contract OrgV1 {
     /// This method should be used for adding new objects to the org, as well as
     /// updating existing ones.
     ///
+    /// The `id` parameter is the unique identifier of the object being anchored.
+    ///
     /// The `tag` parameter may be used to discriminate between different types
     /// of anchors.
     function anchor(
         bytes32 id,
-        bytes calldata multihash,
-        uint8 tag
+        uint32 tag,
+        bytes calldata multihash
     ) public ownerOnly {
-        anchors[id] = Anchor(multihash, tag);
-        emit Anchored(id, multihash, tag);
+        anchors[id] = Anchor(tag, multihash);
+        emit Anchored(id, tag, multihash);
     }
 
     /// Unanchor an object from the org.
