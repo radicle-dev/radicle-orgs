@@ -6,15 +6,15 @@
 
 ### Mainnet
 
-`OrgV1Factory` is deployed at `0x7c4D590168A9019995e072f9c1eCfc1fc356bEd4` at
-height `12607495`.
+`OrgV1Factory` is deployed at `0xa15bEb4876F20018b6b4A4116B7560c5fcC9336e` at
+height `12645849`.
 
 ### Ropsten
 
-`OrgV1Factory` is deployed at `0xc074cDd9541960B0AA72D90c8bC642F6ae9C4032` at
-height `10409983`.
+`OrgV1Factory` is deployed at `0xf36fbaB8BA78683D23c5021bfcE8A5c88731200F` at
+height `10449694`.
 
 ### Rinkeby
 
-`OrgV1Factory` is deployed at `0x57962Eb188146A4942c44545a97478d64dc9e4A5` at
-height `8738827`.
+`OrgV1Factory` is deployed at `0xF3D04e874D07d680e8b26332eEae5b9B1c263121` at
+height `8774325`.
