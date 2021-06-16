@@ -20,8 +20,8 @@ contract OrgV1 {
     struct Anchor {
         // The hash being anchored in multihash format.
         bytes multihash;
-        // The kind of object being anchored.
-        uint8 kind;
+        // A tag that can be used to discriminate between anchor types.
+        uint8 tag;
     }
 
     /// Output of namehash("addr.reverse").
@@ -37,7 +37,7 @@ contract OrgV1 {
     // -- EVENTS --
 
     /// An object was anchored.
-    event Anchored(bytes32 id, bytes multihash, uint8 kind);
+    event Anchored(bytes32 id, bytes multihash, uint8 tag);
 
     /// An object was unanchored.
     event Unanchored(bytes32 id);
@@ -71,15 +71,15 @@ contract OrgV1 {
     /// This method should be used for adding new objects to the org, as well as
     /// updating existing ones.
     ///
-    /// The `kind` paramter may be used to specify the kind of object being
-    /// anchored. Defaults to `0`.
+    /// The `tag` parameter may be used to discriminate between different types
+    /// of anchors.
     function anchor(
         bytes32 id,
         bytes calldata multihash,
-        uint8 kind
+        uint8 tag
     ) public ownerOnly {
-        anchors[id] = Anchor(multihash, kind);
-        emit Anchored(id, multihash, kind);
+        anchors[id] = Anchor(multihash, tag);
+        emit Anchored(id, multihash, tag);
     }
 
     /// Unanchor an object from the org.
