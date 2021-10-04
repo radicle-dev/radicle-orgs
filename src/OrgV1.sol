@@ -6,12 +6,15 @@ interface IERC20 {
 }
 
 interface ENS {
-    function owner(bytes32 node) external view returns (address);
-    function resolver(bytes32 node) external view returns (address);
+    function owner(bytes32) external view returns (address);
+    function setOwner(bytes32, address) external;
+    function resolver(bytes32) external view returns (address);
+    function setSubnodeOwner(bytes32, bytes32, address) external returns (bytes32);
 }
 
 interface ReverseRegistrar {
     function setName(string memory name) external returns (bytes32);
+    function node(address addr) external view returns (bytes32);
 }
 
 /// A Radicle Org.
