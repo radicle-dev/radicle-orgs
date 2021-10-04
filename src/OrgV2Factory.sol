@@ -83,6 +83,9 @@ contract OrgV2Factory {
         bytes[] calldata resolverData,
         Registrar registrar
     ) public returns (OrgV1, bytes32) {
+        require(address(registrar) != address(0), "OrgFactory: registrar must not be zero");
+        require(owner != address(0), "OrgFactory: owner must not be zero");
+
         // Temporarily set the owner of the name to this contract.
         // It will be transfered to the given owner once the setup
         // is complete.
@@ -119,6 +122,8 @@ contract OrgV2Factory {
         bytes[] calldata resolverData,
         Registrar registrar
     ) public returns (OrgV1, bytes32) {
+        require(address(registrar) != address(0), "OrgFactory: registrar must not be zero");
+
         registrar.register(name, address(this), salt);
 
         ENS ens = ENS(registrar.ens());
@@ -166,6 +171,8 @@ contract OrgV2Factory {
         bytes32 label,
         ENS ens
     ) private returns (OrgV1, bytes32) {
+        require(address(ens) != address(0), "OrgFactory: ENS address must not be zero");
+
         // Create org, temporarily holding ownership.
         OrgV1 org = new OrgV1(address(this));
         // Get the ENS node for the name associated with this org.
