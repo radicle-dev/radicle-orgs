@@ -50,9 +50,6 @@ contract OrgV2Factory {
     /// An org was created. Includes the org and owner address as well as the name.
     event OrgCreated(address org, address safe, string domain);
 
-    /// An org was created. Includes the org and owner address.
-    event OrgCreated(address org, address safe);
-
     constructor(
         address _safeFactory,
         address _safeMasterCopy
