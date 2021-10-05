@@ -39,9 +39,12 @@ contract OrgV2FactoryTest is DSTest {
     function testRegisterReclaim() public {
         Registrar registrar = Registrar(0x37723287Ae6F34866d82EE623401f92Ec9013154);
         ENS ens = ENS(registrar.ens());
+        IERC20 rad = IERC20(RAD);
 
         string memory name = "test-0r94814bv2lzka"; // Some random name.
         uint256 salt = 42; // Commitment salt.
+
+        rad.approve(address(factory), registrar.registrationFeeRad());
 
         // Commit to a name.
         address owner = address(this);
@@ -89,6 +92,9 @@ contract OrgV2FactoryTest is DSTest {
 
         // Commit to a name.
         {
+            // Approve factory for fee.
+            IERC20(RAD).approve(address(factory), registrar.registrationFeeRad());
+
             address owner = address(this);
             // The factory must be the initial owner of the name.
             bytes32 commitment = keccak256(abi.encodePacked(name, address(factory), salt));
@@ -140,6 +146,9 @@ contract OrgV2FactoryTest is DSTest {
 
         // Commit to a name.
         {
+            // Approve factory for fee.
+            IERC20(RAD).approve(address(factory), registrar.registrationFeeRad());
+
             // The factory must be the initial owner of the name.
             bytes32 commitment = keccak256(abi.encodePacked(name, address(factory), salt));
             bytes32 ownerDigest = keccak256(abi.encodePacked(owners, salt));

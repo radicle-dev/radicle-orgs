@@ -16,6 +16,15 @@ interface Resolver {
 
 interface Registrar {
     function commit(bytes32 commitment) external;
+    function commitWithPermit(
+        bytes32 commitment,
+        address owner,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external;
     function register(string calldata name, address owner, uint256 salt) external;
     function ens() external view returns (address);
     function radNode() external view returns (bytes32);
@@ -83,12 +92,36 @@ contract OrgV2Factory {
 
         uint256 fee = registrar.registrationFeeRad();
         if (fee > 0) {
+            IERC20 rad = IERC20(registrar.rad());
+
             require(
-                IERC20(registrar.rad()).approve(address(registrar), fee),
-                "OrgFactory: approval of tokens to registrar must succeed"
+                rad.transferFrom(msg.sender, address(this), fee),
+                "OrgFactory: transfer of registration fee from sender must succeed"
+            );
+            require(
+                rad.approve(address(registrar), fee),
+                "OrgFactory: approval of registration fee to registrar must succeed"
             );
         }
         registrar.commit(commitment);
+    }
+
+    /// Commit to a new org name, using *permit*.
+    ///
+    /// See `commitToOrgName`.
+    function commitToOrgNameWithPermit(
+        Registrar registrar,
+        bytes32 commitment,
+        bytes32 ownerDigest,
+        address permitOwner,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) public {
+        commitments[commitment] = ownerDigest;
+        registrar.commitWithPermit(commitment, permitOwner, value, deadline, v, r, s);
     }
 
     /// Register a pre-committed name, create an org and associate the two

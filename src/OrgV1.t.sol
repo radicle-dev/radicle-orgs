@@ -81,9 +81,13 @@ contract Token is IERC20 {
     }
 
     function transfer(address addr, uint256 amount) override public returns (bool) {
-        require(balanceOf[msg.sender] >= amount);
+        return transferFrom(msg.sender, addr, amount);
+    }
 
-        balanceOf[msg.sender] -= amount;
+    function transferFrom(address spender, address addr, uint256 amount) override public returns (bool) {
+        require(balanceOf[spender] >= amount);
+
+        balanceOf[spender] -= amount;
         balanceOf[addr] += amount;
 
         return true;
