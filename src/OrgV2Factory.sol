@@ -60,7 +60,7 @@ contract OrgV2Factory {
     }
 
     /// Commitments to org names.
-    mapping (bytes32 => bytes32) commitments;
+    mapping (bytes32 => bytes32) public commitments;
 
     /// Commit to a new org name.
     ///
@@ -117,13 +117,8 @@ contract OrgV2Factory {
         require(owner != address(0), "OrgFactory: owner must not be zero");
 
         {
-            bytes32 commitment = keccak256(abi.encodePacked(name, address(this), salt));
-            bytes32 ownerDigest = commitments[commitment];
-
-            delete commitments[commitment];
-
-            require(ownerDigest != bytes32(0), "OrgFactory: commitment not found");
-            require(keccak256(abi.encodePacked(owner, salt)) == ownerDigest, "OrgFactory: owner must match commitment");
+            bytes32 ownerDigest = redeemCommitment(name, salt);
+            require(keccak256(abi.encodePacked(owner, salt)) == ownerDigest, "OrgFactory: owners must match commitment");
         }
 
         // Temporarily set the owner of the name to this contract.
@@ -165,12 +160,7 @@ contract OrgV2Factory {
         require(address(registrar) != address(0), "OrgFactory: registrar must not be zero");
 
         {
-            bytes32 commitment = keccak256(abi.encodePacked(name, address(this), salt));
-            bytes32 ownerDigest = commitments[commitment];
-
-            delete commitments[commitment];
-
-            require(ownerDigest != bytes32(0), "OrgFactory: commitment not found");
+            bytes32 ownerDigest = redeemCommitment(name, salt);
             require(keccak256(abi.encodePacked(owners, salt)) == ownerDigest, "OrgFactory: owners must match commitment");
         }
 
@@ -243,5 +233,16 @@ contract OrgV2Factory {
         emit OrgCreated(address(org), owner, domain);
 
         return (org, node);
+    }
+
+    /// Redeem a previously made commitment.
+    function redeemCommitment(string memory name, uint256 salt) private returns (bytes32) {
+        bytes32 commitment = keccak256(abi.encodePacked(name, address(this), salt));
+        bytes32 ownerDigest = commitments[commitment];
+
+        require(ownerDigest != bytes32(0), "OrgFactory: commitment not found");
+        delete commitments[commitment];
+
+        return ownerDigest;
     }
 }
