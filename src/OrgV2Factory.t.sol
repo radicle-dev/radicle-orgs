@@ -11,10 +11,6 @@ interface Hevm {
     function store(address, bytes32, bytes32) external;
 }
 
-interface Token {
-    function approve(address spender, uint256 amount) external returns (bool);
-}
-
 contract OrgV2FactoryTest is DSTest {
     address constant SAFE_FACTORY = 0x76E2cFc1F5Fa8F6a5b3fC4c8F4788F0116861F9B;
     address constant SAFE_MASTER_COPY = 0x34CfAC646f301356fAa8B21e94227e3583Fe3F5F;
@@ -30,7 +26,13 @@ contract OrgV2FactoryTest is DSTest {
         hevm.store(
             RAD,
             keccak256(abi.encode(address(this), uint256(2))),
-            bytes32(uint(100_000_000e18))
+            bytes32(uint(1000_000e18))
+        );
+        // Give the factory lots of $RAD.
+        hevm.store(
+            RAD,
+            keccak256(abi.encode(factory, uint256(2))),
+            bytes32(uint(1000_000e18))
         );
     }
 
@@ -41,15 +43,15 @@ contract OrgV2FactoryTest is DSTest {
         string memory name = "test-0r9481bv2lzka"; // Some random name.
         uint256 salt = 42; // Commitment salt.
 
-        // Approve the registrar for spending the registration fee.
-        Token(RAD).approve(address(registrar), registrar.registrationFeeRad());
-
         // Commit to a name.
         {
-            address owner = address(factory);
-            bytes32 commitment = keccak256(abi.encodePacked(name, owner, salt));
+            address owner = address(this);
+            // The factory must be the initial owner of the name.
+            bytes32 commitment = keccak256(abi.encodePacked(name, address(factory), salt));
+            // We commit to a different final owner of the name.
+            bytes32 ownerDigest = keccak256(abi.encodePacked(owner, salt));
 
-            registrar.commit(commitment);
+            factory.commitToOrgName(registrar, commitment, ownerDigest);
             hevm.roll(block.number + registrar.minCommitmentAge() + 1);
         }
 
@@ -89,21 +91,18 @@ contract OrgV2FactoryTest is DSTest {
         string memory name = "test-8gajk2b108fs";
         uint256 salt = 42; // Commitment salt.
 
-        // Approve the registrar for spending the registration fee.
-        Token(RAD).approve(address(registrar), registrar.registrationFeeRad());
+        address[] memory owners = new address[](1);
+        owners[0] = address(this);
 
         // Commit to a name.
         {
             // The factory must be the initial owner of the name.
-            address owner = address(factory);
-            bytes32 commitment = keccak256(abi.encodePacked(name, owner, salt));
+            bytes32 commitment = keccak256(abi.encodePacked(name, address(factory), salt));
+            bytes32 ownerDigest = keccak256(abi.encodePacked(owners, salt));
 
-            registrar.commit(commitment);
+            factory.commitToOrgName(registrar, commitment, ownerDigest);
             hevm.roll(block.number + registrar.minCommitmentAge() + 1);
         }
-
-        address[] memory owners = new address[](1);
-        owners[0] = address(this);
 
         bytes[] memory data = new bytes[](0);
 

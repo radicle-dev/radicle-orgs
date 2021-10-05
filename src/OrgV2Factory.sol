@@ -19,6 +19,7 @@ interface Registrar {
     function register(string calldata name, address owner, uint256 salt) external;
     function ens() external view returns (address);
     function radNode() external view returns (bytes32);
+    function rad() external view returns (address);
     function registrationFeeRad() external view returns (uint256);
     function minCommitmentAge() external view returns (uint256);
 }
@@ -58,6 +59,38 @@ contract OrgV2Factory {
         safeMasterCopy = _safeMasterCopy;
     }
 
+    /// Commitments to org names.
+    mapping (bytes32 => bytes32) commitments;
+
+    /// Commit to a new org name.
+    ///
+    /// The commitment must commit to this contract as the owner, while the owner
+    /// digest should be a hash of the desired owner of the name, once setup is complete.
+    ///
+    /// The same salt should be used for both parameters. For the owner digest,
+    /// the contract expects `keccak256(abi.encodePacked(owner, salt))`.
+    /// In the case of a multi-sig, the owners array should be used.
+    ///
+    /// @param registrar The Radicle registrar.
+    /// @param commitment The commitment that will be submitted to the registrar.
+    /// @param ownerDigest The designated owner of the name, once setup is complete.
+    function commitToOrgName(
+        Registrar registrar,
+        bytes32 commitment,
+        bytes32 ownerDigest
+    ) public {
+        commitments[commitment] = ownerDigest;
+
+        uint256 fee = registrar.registrationFeeRad();
+        if (fee > 0) {
+            require(
+                IERC20(registrar.rad()).approve(address(registrar), fee),
+                "OrgFactory: approval of tokens to registrar must succeed"
+            );
+        }
+        registrar.commit(commitment);
+    }
+
     /// Register a pre-committed name, create an org and associate the two
     /// together.
     ///
@@ -82,6 +115,16 @@ contract OrgV2Factory {
     ) public returns (OrgV1, bytes32) {
         require(address(registrar) != address(0), "OrgFactory: registrar must not be zero");
         require(owner != address(0), "OrgFactory: owner must not be zero");
+
+        {
+            bytes32 commitment = keccak256(abi.encodePacked(name, address(this), salt));
+            bytes32 ownerDigest = commitments[commitment];
+
+            delete commitments[commitment];
+
+            require(ownerDigest != bytes32(0), "OrgFactory: commitment not found");
+            require(keccak256(abi.encodePacked(owner, salt)) == ownerDigest, "OrgFactory: owner must match commitment");
+        }
 
         // Temporarily set the owner of the name to this contract.
         // It will be transfered to the given owner once the setup
@@ -120,6 +163,16 @@ contract OrgV2Factory {
         Registrar registrar
     ) public returns (OrgV1, bytes32) {
         require(address(registrar) != address(0), "OrgFactory: registrar must not be zero");
+
+        {
+            bytes32 commitment = keccak256(abi.encodePacked(name, address(this), salt));
+            bytes32 ownerDigest = commitments[commitment];
+
+            delete commitments[commitment];
+
+            require(ownerDigest != bytes32(0), "OrgFactory: commitment not found");
+            require(keccak256(abi.encodePacked(owners, salt)) == ownerDigest, "OrgFactory: owners must match commitment");
+        }
 
         registrar.register(name, address(this), salt);
 

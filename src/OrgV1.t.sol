@@ -88,6 +88,13 @@ contract Token is IERC20 {
 
         return true;
     }
+
+    function approve(address spender, uint256 amount) override pure public returns (bool) {
+        spender;
+        amount;
+
+        return false;
+    }
 }
 
 function assertBytesEq(bytes memory a, bytes memory b) pure {
