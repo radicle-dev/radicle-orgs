@@ -181,6 +181,36 @@ contract OrgV2Factory {
         );
     }
 
+    /// Registers a name that is owned by this contract, and reclaims it by
+    /// transfering it back to the owner.
+    ///
+    /// This is useful in emergency situations when a commitment was created
+    /// with this contract as the owner, but completing the flow and creating
+    /// an org is not desirable.
+    ///
+    /// @param registrar Address of the Radicle registrar.
+    /// @param parent ENS parent node for the name, eg. `namehash("radicle.eth")`.
+    /// @param name Name committed to, eg. "cloudhead".
+    /// @param salt Salt committed to.
+    /// @param owner Address this name should be transfered to after registration.
+    function registerAndReclaim(
+        Registrar registrar,
+        bytes32 parent,
+        string memory name,
+        uint256 salt,
+        address owner
+    ) public {
+        ENS ens = ENS(registrar.ens());
+
+        bytes32 ownerDigest = redeemCommitment(name, salt);
+        require(keccak256(abi.encodePacked(owner, salt)) == ownerDigest, "OrgFactory: owner must match commitment");
+
+        registrar.register(name, address(this), salt);
+
+        bytes32 node = keccak256(abi.encodePacked(parent, keccak256(bytes(name))));
+        ens.setOwner(node, owner);
+    }
+
     /// Setup an org with multiple owners.
     function setupOrg(
         address[] memory owners,

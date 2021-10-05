@@ -36,6 +36,50 @@ contract OrgV2FactoryTest is DSTest {
         );
     }
 
+    function testRegisterReclaim() public {
+        Registrar registrar = Registrar(0x37723287Ae6F34866d82EE623401f92Ec9013154);
+        ENS ens = ENS(registrar.ens());
+
+        string memory name = "test-0r94814bv2lzka"; // Some random name.
+        uint256 salt = 42; // Commitment salt.
+
+        // Commit to a name.
+        address owner = address(this);
+        // The factory must be the initial owner of the name.
+        bytes32 commitment = keccak256(abi.encodePacked(name, address(factory), salt));
+        // We commit to a different final owner of the name.
+        bytes32 ownerDigest = keccak256(abi.encodePacked(owner, salt));
+
+        factory.commitToOrgName(registrar, commitment, ownerDigest);
+        hevm.roll(block.number + registrar.minCommitmentAge() + 1);
+
+        bytes32 node = keccak256(abi.encodePacked(registrar.radNode(), keccak256(bytes(name))));
+        factory.registerAndReclaim(registrar, registrar.radNode(), name, salt, owner);
+
+        assertEq(ens.owner(node), owner);
+    }
+
+    function testFailRegisterReclaim() public {
+        Registrar registrar = Registrar(0x37723287Ae6F34866d82EE623401f92Ec9013154);
+
+        string memory name = "test-0r94814bv2lzka"; // Some random name.
+        uint256 salt = 42; // Commitment salt.
+
+        // Commit to a name.
+        address owner = address(this);
+        // The factory must be the initial owner of the name.
+        bytes32 commitment = keccak256(abi.encodePacked(name, address(factory), salt));
+        // We commit to a different final owner of the name.
+        bytes32 ownerDigest = keccak256(abi.encodePacked(owner, salt));
+
+        factory.commitToOrgName(registrar, commitment, ownerDigest);
+        hevm.roll(block.number + registrar.minCommitmentAge() + 1);
+
+        address attacker = address(0x99C85bb64564D9eF9A99621301f22C9993Cb89E3);
+        // Should revert because the given owner is not the one committed to.
+        factory.registerAndReclaim(registrar, registrar.radNode(), name, salt, attacker);
+    }
+
     function testRegisterAndCreateOrg() public {
         Registrar registrar = Registrar(0x37723287Ae6F34866d82EE623401f92Ec9013154);
         ENS ens = ENS(registrar.ens());
