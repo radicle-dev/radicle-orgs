@@ -5,6 +5,15 @@ interface IERC20 {
     function transfer(address recipient, uint256 amount) external returns (bool);
     function transferFrom(address spender, address recipient, uint256 amount) external returns (bool);
     function approve(address spender, uint256 amount) external returns (bool);
+    function permit(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external;
 }
 
 interface ENS {

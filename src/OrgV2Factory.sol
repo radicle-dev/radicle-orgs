@@ -58,7 +58,7 @@ contract OrgV2Factory {
     string public radDomain = ".radicle.eth";
 
     /// An org was created. Includes the org and owner address as well as the name.
-    event OrgCreated(address org, address safe, string domain);
+    event OrgCreated(address org, address owner, string domain);
 
     constructor(
         address _safeFactory,
@@ -120,8 +120,17 @@ contract OrgV2Factory {
         bytes32 r,
         bytes32 s
     ) public {
+        IERC20 rad = IERC20(registrar.rad());
+        rad.approve(address(registrar), value);
+        rad.permit(permitOwner, address(this), value, deadline, v, r, s);
+
+        require(
+            rad.transferFrom(permitOwner, address(this), value),
+            "OrgFactory: transfer from permit owner must succeed"
+        );
+
         commitments[commitment] = ownerDigest;
-        registrar.commitWithPermit(commitment, permitOwner, value, deadline, v, r, s);
+        registrar.commit(commitment);
     }
 
     /// Register a pre-committed name, create an org and associate the two

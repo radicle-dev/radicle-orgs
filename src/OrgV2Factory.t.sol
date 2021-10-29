@@ -9,6 +9,14 @@ import "./OrgV1.sol";
 interface Hevm {
     function roll(uint256) external;
     function store(address, bytes32, bytes32) external;
+    function addr(uint) external returns (address);
+    function sign(uint, bytes32) external returns (uint8, bytes32, bytes32);
+}
+
+interface IERC20Permit is IERC20 {
+    function PERMIT_TYPEHASH() external returns(bytes32);
+    function DOMAIN_SEPARATOR() external returns(bytes32);
+    function nonces(address) external returns(uint256);
 }
 
 contract OrgV2FactoryTest is DSTest {
@@ -34,6 +42,17 @@ contract OrgV2FactoryTest is DSTest {
             keccak256(abi.encode(factory, uint256(2))),
             bytes32(uint(1000_000e18))
         );
+    }
+
+    function makePermit(uint256 value, address owner, address spender) private returns (bytes32) {
+        IERC20Permit rad = IERC20Permit(RAD);
+
+        bytes32 structHash = keccak256(abi.encode(
+            rad.PERMIT_TYPEHASH(), owner, spender, value, rad.nonces(owner), type(uint).max
+        ));
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", rad.DOMAIN_SEPARATOR(), structHash));
+
+        return digest;
     }
 
     function testRegisterReclaim() public {
@@ -81,6 +100,58 @@ contract OrgV2FactoryTest is DSTest {
         address attacker = address(0x99C85bb64564D9eF9A99621301f22C9993Cb89E3);
         // Should revert because the given owner is not the one committed to.
         factory.registerAndReclaim(registrar, registrar.radNode(), name, salt, attacker);
+    }
+
+    function testRegisterAndCreateOrgWithPermit() public {
+        Registrar registrar = Registrar(0x37723287Ae6F34866d82EE623401f92Ec9013154);
+        ENS ens = ENS(registrar.ens());
+
+        string memory name = "test-0r9481bv29dab"; // Some random name.
+        uint256 salt = 42; // Commitment salt.
+        uint sk = 4938281;
+        address owner = hevm.addr(sk);
+
+        // Commit to a name.
+        {
+            uint value = registrar.registrationFeeRad();
+            bytes32 digest = makePermit(value, owner, address(factory));
+
+            // Give the owner some RAD.
+            hevm.store(
+                RAD,
+                keccak256(abi.encode(owner, uint256(2))),
+                bytes32(value)
+            );
+
+            (uint8 v, bytes32 r, bytes32 s) = hevm.sign(sk, digest);
+
+            bytes32 commitment = keccak256(abi.encodePacked(name, address(factory), salt));
+            bytes32 ownerDigest = keccak256(abi.encodePacked(owner, salt));
+
+            factory.commitToOrgNameWithPermit(
+                registrar,
+                commitment,
+                ownerDigest,
+                owner,
+                value,
+                type(uint).max,
+                v, r, s
+            );
+            hevm.roll(block.number + registrar.minCommitmentAge() + 1);
+        }
+
+        bytes[] memory data = new bytes[](0);
+
+        (OrgV1 org, bytes32 node) = factory.registerAndCreateOrg(
+            owner,
+            name,
+            salt,
+            data,
+            registrar
+        );
+        assertTrue(address(org) != address(0));
+        assertEq(org.owner(), owner);
+        assertEq(ens.owner(node), org.owner());
     }
 
     function testRegisterAndCreateOrg() public {

@@ -99,6 +99,16 @@ contract Token is IERC20 {
 
         return false;
     }
+
+    function permit(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) override public {}
 }
 
 function assertBytesEq(bytes memory a, bytes memory b) pure {
